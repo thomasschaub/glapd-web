@@ -1,0 +1,2 @@
+import"../chunks/DBi4nRco.js";import"../chunks/DCDphjQc.js";import{P as r}from"../chunks/Bc-PAjbi.js";function i(t){let e={isRunning:!1,phase:"generateLampPrimerSets",phaseStartTime:Date.now(),primerRegionIteration:{current:1,total:10},primerSetCandidatesIteration:{numTargets:0,current:1,total:10},lampPrimerSets:[{primers:{f3:"ACGT",f2:"ACGT",f1c:"ACGT",b1c:"ACGT",b2:"ACGT",b3:"ACGT",lf:"ACGT",lb:"ACGT"},targets:["foo","bar"]}],log:`Hello!
+This is the log.`,results:""};r(t,{get status(){return e}})}export{i as component};
