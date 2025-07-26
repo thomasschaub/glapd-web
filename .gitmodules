@@ -1,0 +1,6 @@
+[submodule "external/GLAPD/GLAPD"]
+	path = external/GLAPD/GLAPD
+	url = https://github.com/thomasschaub/GLAPD.git
+[submodule "external/bowtie/bowtie"]
+	path = external/bowtie/bowtie
+	url = https://github.com/thomasschaub/bowtie.git
