@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>GLAPDx</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="">
+<style>
+    textarea {
+        width: 600px;
+        height: 300px;
+    }
+</style>
+<script type="text/javascript" src="main.js" async></script>
+
+</head>
+
+<body>
+
+<h1>GLAPDx</h1>
+
+<p>This project is built using <a href="https://cgm.sjtu.edu.cn/GLAPD/">GLAPD</a>, but is not part of the official project.</p>
+
+<h2>Target</h2>
+
+<div>
+    <label>Index <input type="file" id="indexFile" /></label><br />
+    <label>Reference Genome <input type="file" id="refFile" /></label><br />
+    <label>Target Genome List <input type="file" id="targetListFile" /></label><br />
+    <label>
+        Maximum number of mismatches in target
+        <select id="maxNumMismatchesInTarget">
+            <option value="0" selected>0 (default)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+    </label>
+</div>
+
+<h2>Background</h2>
+
+<div>
+    <label>
+        Background Genomes
+        <select id="backgroundMode">
+            <option value="automatic">Automatic (default)</option>
+            <option value="fromFile">From File</option>
+            <option value="none">None</option>
+        </select>
+    </label>
+    <br />
+    <input type="file" id="backgroundListFile" /><br />
+
+    <label>
+        Maximum number of mismatches in background
+        <select id="maxNumMismatchesInBackground">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2" selected>2 (default)</option>
+            <option value="3">3</option>
+        </select>
+    </label>
+</div>
+
+<h2>Misc</h2>
+
+<div>
+    <label>Include loop primers <input type="checkbox" id="includeLoopPrimers" /></label><br />
+    <label>Number of primers to generate <input type="number" id="numPrimersToGenerate" value="10"/></label>
+</div>
+
+<button id="runBtn">Run</button>
+
+<br />
+
+<textarea id="output" style="display:none;"></textarea>
+
+</body>
+</html>
