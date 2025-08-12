@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
             die("Invalid index path");
         if (!isValidFile(args.refPath))
             die("Invalid ref path");
-        if (!isValidFile(args.targetListPath))
+        if (!args.targetListPath.empty() && !isValidFile(args.targetListPath))
             die("Invalid target list path");
         if (args.backgroundMode != BackgroundMode::fromFile) {
             if (!args.backgroundListPath.empty())
