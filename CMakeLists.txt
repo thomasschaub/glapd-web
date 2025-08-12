@@ -17,4 +17,11 @@ if(EMSCRIPTEN)
     # Embed par dir
     target_link_options(glapd-web PRIVATE
         --embed-file=${CMAKE_CURRENT_LIST_DIR}/external/glapd/GLAPD/Par@external/glapd/GLAPD/Par)
+
+    install(
+        FILES
+            "$<TARGET_FILE_DIR:glapd-web>/glapd-web.js"
+            "$<TARGET_FILE_DIR:glapd-web>/glapd-web.wasm"
+        DESTINATION .
+    )
 endif()

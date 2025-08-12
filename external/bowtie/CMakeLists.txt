@@ -35,6 +35,7 @@ target_compile_definitions(bowtie PRIVATE
 )
 
 target_compile_definitions(bowtie PRIVATE NDEBUG) # we get assertions, but its not like we're gonna do anything about them
+target_compile_options(bowtie PRIVATE -w)         # same for warnings
 
 if(EMSCRIPTEN)
     target_compile_options(bowtie PRIVATE "-sUSE_ZLIB=1")
