@@ -16,7 +16,11 @@ target_link_libraries(glapd-web PRIVATE bowtie glapd)
 if(EMSCRIPTEN)
     # Embed par dir
     target_link_options(glapd-web PRIVATE
+        --js-library=${CMAKE_CURRENT_LIST_DIR}/src/signals.js
         --embed-file=${CMAKE_CURRENT_LIST_DIR}/external/glapd/GLAPD/Par@external/glapd/GLAPD/Par)
+
+    set_property(TARGET glapd APPEND PROPERTY
+        LINK_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/src/signals.js)
 
     install(
         FILES

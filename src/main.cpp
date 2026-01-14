@@ -10,6 +10,7 @@
 #include "bowtie.h"
 #include "glapd.h"
 #include "par.h"
+#include "signals.h"
 
 #if EMSCRIPTEN
 #include <emscripten.h>
@@ -167,6 +168,8 @@ Args parseArgs(int argc, char* argv[]) {
 }
 
 void buildBowtieIndex(const Args& args) {
+    notify_about_to_start_phase("buildBowtieIndex");
+
     std::vector<const char*> bowtieArgs {
         "bowtie-build", // program name
         args.indexPath.c_str(),
@@ -177,6 +180,8 @@ void buildBowtieIndex(const Args& args) {
 }
 
 void generateSingleRegionPrimers(const Args& args) {
+    notify_about_to_start_phase("generateSingleRegionPrimers");
+
     std::cout << "Generating single region primers" << std::endl;
 
     std::vector<const char*> glapdArgs{
@@ -194,6 +199,8 @@ void generateSingleRegionPrimers(const Args& args) {
 }
 
 void alignSingleRegionPrimers(const Args& args) {
+    notify_about_to_start_phase("alignSingleRegionPrimers");
+
     std::cout << "Aligning single region primers" << std::endl;
 
     const std::string misCStr = std::to_string(args.maxNumMismatchesInTarget);
@@ -236,6 +243,8 @@ void alignSingleRegionPrimers(const Args& args) {
 }
 
 void generateLampPrimerSets(const Args& args) {
+    notify_about_to_start_phase("generateLampPrimerSets");
+
     std::cout << "Generating LAMP primer sets" << std::endl;
 
     std::vector<const char*> glapdArgs{
