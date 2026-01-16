@@ -39,10 +39,15 @@ function init() {
             progressElement.innerText = '';
         } else if (cmd == 'notify_about_to_check_candidate_primer_region') {
             const { current, total } = msg;
-            progressElement.innerText = (current / total * 100).toFixed(2) + "%";
+            const percentage = current / total * 100;
+            progressElement.innerText = `${current}/${total} (${percentage.toFixed(0)}%)`;
         } else if (cmd == 'notify_about_to_check_primer_set_candidate') {
             const { numTargets, current, total } = msg;
-            progressElement.innerText = (current / total * 100).toFixed(2) + "%";
+            const percentage = current / total * 100;
+            progressElement.innerText = `${numTargets} ${current}/${total} (${percentage.toFixed(0)}%)`;
+        } else if (cmd == 'notify_found_primer_set_candidate') {
+            const { f3, f2, f1c, b1c, b2, b3, lf, lb, } = msg.args;
+            console.log('Found LAMP primer set', f3, f2, f1c, b1c, b2, b3, lf, lb);
         } else {
             console.log(`Unknown command: ${cmd}`);
         }
