@@ -9,6 +9,11 @@ function init() {
     const includeLoopPrimersElement = document.getElementById('includeLoopPrimers');
     const numPrimersToGenerateElement = document.getElementById('numPrimersToGenerate');
     const outputElement = document.getElementById('output');
+    const runBtn = document.getElementById('runBtn')
+    const resultsElement = document.getElementById('results');
+    const progressInfoRootElement = document.getElementById('progressInfoRoot');
+    const phaseElement = document.getElementById('phase');
+    const progressElement = document.getElementById('progress');
 
     const worker = new Worker('worker.js');
 
@@ -24,7 +29,20 @@ function init() {
             outputElement.textContent += msg.text + "\n";
             outputElement.scrollTop = outputElement.scrollHeight;
         } else if (cmd == 'results') {
-            outputElement.textContent += "================\n" + msg.results;
+            phaseElement.innerText = 'Done';
+            progressElement.innerText = '';
+            resultsElement.style.display = 'block';
+            resultsElement.textContent = msg.results;
+        } else if (cmd == 'notify_about_to_start_phase') {
+            const { phase } = msg;
+            phaseElement.innerText = phase;
+            progressElement.innerText = '';
+        } else if (cmd == 'notify_about_to_check_candidate_primer_region') {
+            const { current, total } = msg;
+            progressElement.innerText = (current / total * 100).toFixed(2) + "%";
+        } else if (cmd == 'notify_about_to_check_primer_set_candidate') {
+            const { numTargets, current, total } = msg;
+            progressElement.innerText = (current / total * 100).toFixed(2) + "%";
         } else {
             console.log(`Unknown command: ${cmd}`);
         }
@@ -67,8 +85,11 @@ function init() {
         worker.postMessage(args);
 
         // Update HTML
+        runBtn.disabled = true;
+        phaseElement.innerText = ''
+        progressElement.innerText = ''
         outputElement.textContent = null;
-        outputElement.style.display = 'block';
+        progressInfoRootElement.style.display = 'block';
     }
 
     document.getElementById('runBtn').addEventListener('click', e => runGlapd());
