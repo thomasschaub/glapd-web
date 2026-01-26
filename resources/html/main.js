@@ -7,6 +7,7 @@ let refFileElement;
 let targetListFileElement;
 let maxNumMismatchesInTargetElement;
 let backgroundModeElement;
+let backgroundListFileLabelElement;
 let backgroundListFileElement;
 let maxNumMismatchesInBackgroundElement;
 let includeLoopPrimersElement;
@@ -104,6 +105,14 @@ function toggleLog() {
     }
 }
 
+function updateBackgroundListFileLabelVisibility() {
+    if (backgroundModeElement.value === 'fromFile') {
+        backgroundListFileLabelElement.style.display = '';
+    } else {
+        backgroundListFileLabelElement.style.display = 'none';
+    }
+}
+
 // Init
 
 function initHTMLElements() {
@@ -112,6 +121,7 @@ function initHTMLElements() {
     targetListFileElement = document.getElementById('targetListFile');
     maxNumMismatchesInTargetElement = document.getElementById('maxNumMismatchesInTarget');
     backgroundModeElement = document.getElementById('backgroundMode');
+    backgroundListFileLabelElement = document.getElementById('backgroundListFileLabel');
     backgroundListFileElement = document.getElementById('backgroundListFile');
     maxNumMismatchesInBackgroundElement = document.getElementById('maxNumMismatchesInBackground');
     includeLoopPrimersElement = document.getElementById('includeLoopPrimers');
@@ -127,6 +137,7 @@ function initHTMLElements() {
 
 function init() {
     initHTMLElements();
+    updateBackgroundListFileLabelVisibility();
 
     const worker = new Worker('worker.js');
 
@@ -206,6 +217,8 @@ function init() {
     runBtn.addEventListener('click', e => runGlapd());
 
     toggleLogBtn.addEventListener('click', () => toggleLog());
+
+    backgroundModeElement.addEventListener('change', () => updateBackgroundListFileLabelVisibility());
 }
 
 if (document.readyState === "loading") {
