@@ -8,9 +8,51 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="">
 <style>
+    body {
+        background-color: #f0f0f0;
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+    }
+
+    #content {
+        max-width: 900px;
+        min-height: 100vh;
+        margin: auto;
+        background-color: #fff;
+        padding: 8px;
+    }
+
+    #progressPage {
+        display: none;
+    }
+
+    #resultsPage {
+        display: none;
+    }
+
     textarea {
         width: 600px;
         height: 300px;
+    }
+
+    .invalidInput {
+        color: red;
+    }
+
+    .phase .progressIcon {
+        display: inline-block;
+        width: 16px;
+        aspect-ratio: 1;
+        margin-right: 3px;
+    }
+
+    .activePhase {
+        font-weight: bold;
+    }
+
+    .progressDetails {
+        margin-left: 12px;
+        color: grey;
     }
 </style>
 <script type="text/javascript" src="main.js" async></script>
@@ -18,72 +60,75 @@
 </head>
 
 <body>
+    <div id="content">
+        <h1>GLAPDx</h1>
+        <p>This project is built using <a href="https://cgm.sjtu.edu.cn/GLAPD/">GLAPD</a>, but is not part of the official project.</p>
+        <div id="parametersPage">
+            <h2>Target</h2>
+            <div>
+                <label>Index <input type="file" id="indexFile" /></label><br />
+                <label>Reference Genome <input type="file" id="refFile" /></label><br />
+                <label>Target Genome List <input type="file" id="targetListFile" /></label><br />
+                <label>
+                    Maximum number of mismatches in target
+                    <select id="maxNumMismatchesInTarget">
+                        <option value="0" selected>0 (default)</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </label>
+            </div>
 
-<h1>GLAPDx</h1>
+            <h2>Background</h2>
+            <div>
+                <label>
+                    Background Genomes
+                    <select id="backgroundMode">
+                        <option value="automatic">Automatic (default)</option>
+                        <option value="fromFile">From File</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+                <br />
+                <label>Background Genome List <input type="file" id="backgroundListFile" /></label><br />
 
-<p>This project is built using <a href="https://cgm.sjtu.edu.cn/GLAPD/">GLAPD</a>, but is not part of the official project.</p>
+                <label>
+                    Maximum number of mismatches in background
+                    <select id="maxNumMismatchesInBackground">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2" selected>2 (default)</option>
+                        <option value="3">3</option>
+                    </select>
+                </label>
+            </div>
 
-<h2>Target</h2>
+            <h2>Misc</h2>
+            <div>
+                <label>Include loop primers <input type="checkbox" id="includeLoopPrimers" /></label><br />
+                <label>Number of primers to generate <input type="number" id="numPrimersToGenerate" value="10"/></label>
+            </div>
 
-<div>
-    <label>Index <input type="file" id="indexFile" /></label><br />
-    <label>Reference Genome <input type="file" id="refFile" /></label><br />
-    <label>Target Genome List <input type="file" id="targetListFile" /></label><br />
-    <label>
-        Maximum number of mismatches in target
-        <select id="maxNumMismatchesInTarget">
-            <option value="0" selected>0 (default)</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-        </select>
-    </label>
-</div>
+            <button id="runBtn">Run</button>
+        </div>
 
-<h2>Background</h2>
+        <div id="progressPage">
+            <h2>Please Wait</h2>
+            <div>
+                <p id="buildBowtieIndex" class="phase"><span class="progressIcon"></span>Building Bowtie Index</p>
+                <p id="generateSingleRegionPrimers" class="phase"><span class="progressIcon"></span>Generating Single Region Primers<span id="generateSingleRegionPrimersProgress" class="progressDetails"></span></p>
+                <p id="alignSingleRegionPrimers" class="phase"><span class="progressIcon"></span>Aligning Single Region Primers</p>
+                <p id="generateLampPrimerSets" class="phase"><span class="progressIcon"></span>Generating LAMP Primer Sets<span id="generateLampPrimerSetsProgress" class="progressDetails"></span></p>
+            </div>
 
-<div>
-    <label>
-        Background Genomes
-        <select id="backgroundMode">
-            <option value="automatic">Automatic (default)</option>
-            <option value="fromFile">From File</option>
-            <option value="none">None</option>
-        </select>
-    </label>
-    <br />
-    <input type="file" id="backgroundListFile" /><br />
+            <textarea id="results" readonly style="display:none;"></textarea>
 
-    <label>
-        Maximum number of mismatches in background
-        <select id="maxNumMismatchesInBackground">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2" selected>2 (default)</option>
-            <option value="3">3</option>
-        </select>
-    </label>
-</div>
-
-<h2>Misc</h2>
-
-<div>
-    <label>Include loop primers <input type="checkbox" id="includeLoopPrimers" /></label><br />
-    <label>Number of primers to generate <input type="number" id="numPrimersToGenerate" value="10"/></label>
-</div>
-
-<button id="runBtn">Run</button>
-
-<br />
-
-<textarea id="results" readonly style="display:none;"></textarea>
-
-<div id="progressInfoRoot" style="display:none;">
-    <div>
-        <span id="phase"></span> <span id="progress"></span>
+            <div>
+                <button id="toggleLogBtn">Show</button><br />
+                <textarea id="log" readonly style="display: none;"></textarea>
+            </div>
+        </div>
     </div>
-    <textarea id="output" readonly></textarea>
-</div>
-
 </body>
 </html>

@@ -1,19 +1,132 @@
+'use strict';
+
+// HTML elements
+
+let indexFileElement;
+let refFileElement;
+let targetListFileElement;
+let maxNumMismatchesInTargetElement;
+let backgroundModeElement;
+let backgroundListFileElement;
+let maxNumMismatchesInBackgroundElement;
+let includeLoopPrimersElement;
+let numPrimersToGenerateElement;
+let toggleLogBtn;
+let logElement;
+let runBtn;
+let resultsElement;
+
+let parametersPageElement;
+let progressPageElement;
+
+// Input validation
+
+function validateFastaFileInput(inputElement) {
+    const isValid = inputElement.files.length == 1;
+
+    const labelElement = getLabelForInputElement(inputElement);
+    if (labelElement) {
+        if (isValid)
+            labelElement.classList.remove('invalidInput');
+        else
+            labelElement.classList.add('invalidInput');
+    }
+
+    return isValid;
+}
+
+// Returns true if the inputs are valid, false otherwise
+function validateInputs() {
+    let invalidCount = 0;
+
+    invalidCount += validateFastaFileInput(indexFileElement) ? 0 : 1;
+    invalidCount += validateFastaFileInput(refFileElement) ? 0 : 1;
+    invalidCount += validateFastaFileInput(targetListFileElement) ? 0 : 1;
+    if (backgroundModeElement.value == 'fromFile') {
+        invalidCount += validateFastaFileInput(backgroundListFileElement) ? 0 : 1;
+    }
+
+    return invalidCount == 0;
+}
+
+function getLabelForInputElement(inputElement) {
+    var element = inputElement;
+    while (element) {
+        if (element.nodeName == 'LABEL') {
+            return element;
+        }
+
+        element = element.parentNode;
+    }
+    return null;
+}
+
+// Progress infos
+
+function clearProgressDetails() {
+    for (const el of document.getElementsByClassName('progressDetails'))
+        el.innerText = '';
+}
+
+function setActivePhase(phase) {
+    const phaseElements = [
+        document.getElementById('buildBowtieIndex'),
+        document.getElementById('generateSingleRegionPrimers'),
+        document.getElementById('alignSingleRegionPrimers'),
+        document.getElementById('generateLampPrimerSets'),
+    ];
+
+    var found = false;
+    for (const element of phaseElements) {
+        const progressIconElement = element.getElementsByClassName('progressIcon')[0];
+
+        if (element.id == phase) {
+            progressIconElement.classList.add('activePhase')
+            progressIconElement.innerText = '⏳';
+            found = true;
+        } else {
+            progressIconElement.classList.remove('activePhase')
+            progressIconElement.innerText = '...';
+            if (!found) {
+                progressIconElement.innerText = '✅';
+            }
+        }
+    }
+}
+
+function toggleLog() {
+    if (logElement.style.display === 'none') {
+        toggleLogBtn.innerText = 'Hide';
+        logElement.style.display = '';
+    } else {
+        toggleLogBtn.innerText = 'Show';
+        logElement.style.display = 'none';
+    }
+}
+
+// Init
+
+function initHTMLElements() {
+    indexFileElement = document.getElementById('indexFile');
+    refFileElement = document.getElementById('refFile');
+    targetListFileElement = document.getElementById('targetListFile');
+    maxNumMismatchesInTargetElement = document.getElementById('maxNumMismatchesInTarget');
+    backgroundModeElement = document.getElementById('backgroundMode');
+    backgroundListFileElement = document.getElementById('backgroundListFile');
+    maxNumMismatchesInBackgroundElement = document.getElementById('maxNumMismatchesInBackground');
+    includeLoopPrimersElement = document.getElementById('includeLoopPrimers');
+    numPrimersToGenerateElement = document.getElementById('numPrimersToGenerate');
+    toggleLogBtn = document.getElementById('toggleLogBtn');
+    logElement = document.getElementById('log');
+    runBtn = document.getElementById('runBtn')
+    resultsElement = document.getElementById('results');
+
+    parametersPageElement = document.getElementById('parametersPage');
+    progressPageElement = document.getElementById('progressPage');
+}
+
 function init() {
-    const indexFileElement = document.getElementById('indexFile');
-    const refFileElement = document.getElementById('refFile');
-    const targetListFileElement = document.getElementById('targetListFile');
-    const maxNumMismatchesInTargetElement = document.getElementById('maxNumMismatchesInTarget');
-    const backgroundModeElement = document.getElementById('backgroundMode');
-    const backgroundListFileElement = document.getElementById('backgroundListFile');
-    const maxNumMismatchesInBackgroundElement = document.getElementById('maxNumMismatchesInBackground');
-    const includeLoopPrimersElement = document.getElementById('includeLoopPrimers');
-    const numPrimersToGenerateElement = document.getElementById('numPrimersToGenerate');
-    const outputElement = document.getElementById('output');
-    const runBtn = document.getElementById('runBtn')
-    const resultsElement = document.getElementById('results');
-    const progressInfoRootElement = document.getElementById('progressInfoRoot');
-    const phaseElement = document.getElementById('phase');
-    const progressElement = document.getElementById('progress');
+    initHTMLElements();
 
     const worker = new Worker('worker.js');
 
@@ -26,25 +139,31 @@ function init() {
 
         const cmd = msg.cmd;
         if (cmd == 'print' || cmd == 'printErr') {
-            outputElement.textContent += msg.text + "\n";
-            outputElement.scrollTop = outputElement.scrollHeight;
+            logElement.value += msg.text + "\n";
+            logElement.scrollTop = logElement.scrollHeight;
         } else if (cmd == 'results') {
-            phaseElement.innerText = 'Done';
-            progressElement.innerText = '';
             resultsElement.style.display = 'block';
-            resultsElement.textContent = msg.results;
+            resultsElement.value = msg.results;
+            const h2Element = progressPageElement.getElementsByTagName('h2')[0];
+            if (h2Element)
+                h2Element.innerText = 'Done';
+            setActivePhase('');
+            clearProgressDetails();
         } else if (cmd == 'notify_about_to_start_phase') {
             const { phase } = msg;
-            phaseElement.innerText = phase;
-            progressElement.innerText = '';
+            setActivePhase(phase);
+            clearProgressDetails();
         } else if (cmd == 'notify_about_to_check_candidate_primer_region') {
             const { current, total } = msg;
             const percentage = current / total * 100;
+            const progressElement = document.getElementById('generateSingleRegionPrimersProgress');
             progressElement.innerText = `${current}/${total} (${percentage.toFixed(0)}%)`;
         } else if (cmd == 'notify_about_to_check_primer_set_candidate') {
             const { numTargets, current, total } = msg;
             const percentage = current / total * 100;
-            progressElement.innerText = `${numTargets} ${current}/${total} (${percentage.toFixed(0)}%)`;
+            const progressElement = document.getElementById('generateLampPrimerSetsProgress');
+            const genomes = numTargets > 1 ? 'genomes' : 'genome';
+            progressElement.innerText = `Amplify ${numTargets} ${genomes} ${current}/${total} (${percentage.toFixed(0)}%)`;
         } else if (cmd == 'notify_found_primer_set_candidate') {
             const { f3, f2, f1c, b1c, b2, b3, lf, lb, } = msg.args;
             console.log('Found LAMP primer set', f3, f2, f1c, b1c, b2, b3, lf, lb);
@@ -53,26 +172,13 @@ function init() {
         }
     };
 
+    for (const fastaFileInput of [indexFileElement, refFileElement, targetListFileElement, backgroundListFileElement]) {
+        fastaFileInput.addEventListener('change', () => validateFastaFileInput(fastaFileInput));
+    }
+
     async function runGlapd() {
-        // Validate inputs
-        if (indexFileElement.files.length != 1) {
-            console.log('Index file not set');
+        if (!validateInputs())
             return;
-        }
-        if (refFileElement.files.length != 1) {
-            console.log('Ref file not set');
-            return;
-        }
-        if (targetListFileElement.files.length != 1) {
-            console.log('Target list file not set');
-            return;
-        }
-        if (backgroundModeElement.value == 'fromFile') {
-            if (backgroundListFileElement.files.length != 1) {
-                console.log('Background list file not set')
-                return;
-            }
-        }
 
         const args = {
             index: await indexFileElement.files[0].text(),
@@ -91,13 +197,15 @@ function init() {
 
         // Update HTML
         runBtn.disabled = true;
-        phaseElement.innerText = ''
-        progressElement.innerText = ''
-        outputElement.textContent = null;
-        progressInfoRootElement.style.display = 'block';
+        parametersPageElement.style.display = 'none';
+        progressPageElement.style.display = 'block';
+        logElement.value = '';
+        resultsElement.value = '';
     }
 
-    document.getElementById('runBtn').addEventListener('click', e => runGlapd());
+    runBtn.addEventListener('click', e => runGlapd());
+
+    toggleLogBtn.addEventListener('click', () => toggleLog());
 }
 
 if (document.readyState === "loading") {
