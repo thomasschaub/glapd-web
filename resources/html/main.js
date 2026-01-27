@@ -160,6 +160,7 @@ function init() {
                 h2Element.innerText = 'Done';
             setActivePhase('');
             clearProgressDetails();
+            window.removeEventListener("beforeunload", beforeUnloadHandler);
         } else if (cmd == 'notify_about_to_start_phase') {
             const { phase } = msg;
             setActivePhase(phase);
@@ -207,6 +208,7 @@ function init() {
         worker.postMessage(args);
 
         // Update HTML
+        window.addEventListener("beforeunload", beforeUnloadHandler);
         runBtn.disabled = true;
         parametersPageElement.style.display = 'none';
         progressPageElement.style.display = 'block';
@@ -226,3 +228,9 @@ if (document.readyState === "loading") {
 } else {
     init();
 }
+
+// Register with window's beforeunload event to ask user for confirmation before closing
+function beforeUnloadHandler(event) {
+    event.preventDefault();
+    event.returnValue = true;
+};
