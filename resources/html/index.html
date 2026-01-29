@@ -30,9 +30,13 @@
         display: none;
     }
 
-    textarea {
+    pre {
         width: 600px;
         height: 300px;
+        border: 1px solid black;
+        border-radius: 5px;
+        padding: 2px;
+        overflow: hidden scroll;
     }
 
     .invalidInput {
@@ -120,16 +124,17 @@
                 <p id="generateSingleRegionPrimers" class="phase"><span class="progressIcon"></span>Generate Single Region Primers<span id="generateSingleRegionPrimersProgress" class="progressDetails"></span></p>
                 <p id="alignSingleRegionPrimers" class="phase"><span class="progressIcon"></span>Align Single Region Primers</p>
                 <p id="generateLampPrimerSets" class="phase"><span class="progressIcon"></span>Generate LAMP Primer Sets<span id="generateLampPrimerSetsProgress" class="progressDetails"></span></p>
+                <pre id="lampSets" style="display: none;" readonly></pre><br />
             </div>
 
-            <div id="resultsArea" style="display:none;">
-                <textarea id="results" readonly></textarea><br />
+            <div id="resultsArea" style="display: none;">
+                <pre id="results" readonly></pre><br />
                 <button id="saveResultsBtn">Save Results</button>
             </div>
 
             <div>
                 <button id="toggleLogBtn">Show</button><br />
-                <textarea id="log" readonly style="display: none;"></textarea>
+                <pre id="log" readonly style="display: none;"></pre>
             </div>
         </div>
     </div>

@@ -15,12 +15,50 @@ let numPrimersToGenerateElement;
 let toggleLogBtn;
 let logElement;
 let runBtn;
+let lampSetsElement;
 let resultsAreaElement;
 let resultsElement;
 let saveResultsBtn;
 
 let parametersPageElement;
 let progressPageElement;
+
+// App state
+
+let log;
+let primers;
+
+function resetOutput() {
+    log = "";
+    primers = [];
+}
+
+function logLine(msg) {
+    log += msg + "\n";
+    logElement.innerText = log;
+    logElement.scrollTop = logElement.scrollHeight;
+}
+
+function handleFoundPrimerSetCandidateBegin(f3, f2, f1c, b1c, b2, b3, lf, lb) {
+    primers.push({
+        f3, f2, f1c, b1c, b2, b3, lf, lb,
+        "targets": [],
+    });
+}
+
+function handlePrimerSetCandidateCanBeUsedFor(name) {
+    const primer = primers[primers.length - 1];
+    primer.targets.push(name);
+}
+
+function handleFoundPrimerSetCandidateEnd() {
+    const primer = primers[primers.length - 1];
+
+    const index = primers.length;
+
+    lampSetsElement.innerText += `LAMP primer set #${index}\n${renderLampPrimerSet(primer)}\n`;
+    lampSetsElement.style.display = '';
+}
 
 // Input validation
 
@@ -180,12 +218,35 @@ function initHTMLElements() {
     toggleLogBtn = getElementById('toggleLogBtn');
     logElement = getElementById('log');
     runBtn = getElementById('runBtn')
+    lampSetsElement = getElementById('lampSets');
     resultsAreaElement = getElementById('resultsArea');
     resultsElement = getElementById('results');
     saveResultsBtn = getElementById('saveResultsBtn');
 
     parametersPageElement = getElementById('parametersPage');
     progressPageElement = getElementById('progressPage');
+}
+
+function renderLampPrimerSet(primer) {
+    let s = `  F3: ${primer.f3}
+  F2: ${primer.f2}
+  F1c: ${primer.f1c}
+  B1c: ${primer.b1c}
+  B2: ${primer.b2}
+  B3: ${primer.b3}
+`
+
+    if (includeLoopPrimersElement.checked) {
+        s += `  LF: ${primer.lf}
+  LB: ${primer.lb}
+`;
+    }
+
+    if (primer.targets) {
+        s += '  Targets: ' + primer.targets.join(', ') + '\n';
+    }
+
+    return s;
 }
 
 function init() {
@@ -203,11 +264,10 @@ function init() {
 
         const cmd = msg.cmd;
         if (cmd == 'print' || cmd == 'printErr') {
-            logElement.value += msg.text + "\n";
-            logElement.scrollTop = logElement.scrollHeight;
+            logLine(msg.text);
         } else if (cmd == 'results') {
             resultsAreaElement.style.display = 'block';
-            resultsElement.value = msg.results;
+            resultsElement.innerText = msg.results;
             const h2Element = progressPageElement.getElementsByTagName('h2')[0];
             if (h2Element)
                 h2Element.innerText = 'Done';
@@ -229,9 +289,15 @@ function init() {
             const progressElement = document.getElementById('generateLampPrimerSetsProgress');
             const genomes = numTargets > 1 ? 'genomes' : 'genome';
             progressElement.innerText = `Amplify ${numTargets} ${genomes} ${current}/${total} (${percentage.toFixed(0)}%)`;
-        } else if (cmd == 'notify_found_primer_set_candidate') {
+        } else if (cmd == 'notify_found_primer_set_candidate_begin') {
             const { f3, f2, f1c, b1c, b2, b3, lf, lb, } = msg.args;
-            console.log('Found LAMP primer set', f3, f2, f1c, b1c, b2, b3, lf, lb);
+            handleFoundPrimerSetCandidateBegin(f3, f2, f1c, b1c, b2, b3, lf, lb);
+        } else if (cmd == 'notify_primer_set_candidate_can_be_used_for') {
+            const { name } = msg.args;
+            handlePrimerSetCandidateCanBeUsedFor(name);
+        } else if (cmd == 'notify_found_primer_set_candidate_end') {
+            const {} = msg.args;
+            handleFoundPrimerSetCandidateEnd();
         } else {
             console.log(`Unknown command: ${cmd}`);
         }
@@ -244,6 +310,8 @@ function init() {
     async function runGlapd() {
         if (!validateInputs())
             return;
+
+        resetOutput();
 
         const args = {
             index: await indexFileElement.files[0].text(),
@@ -265,8 +333,8 @@ function init() {
         runBtn.disabled = true;
         parametersPageElement.style.display = 'none';
         progressPageElement.style.display = 'block';
-        logElement.value = '';
-        resultsElement.value = '';
+        logElement.innerText = '';
+        resultsElement.innerText = '';
     }
 
     runBtn.addEventListener('click', () => runGlapd());
@@ -275,7 +343,7 @@ function init() {
 
     backgroundModeElement.addEventListener('change', () => updateBackgroundListFileLabelVisibility());
 
-    saveResultsBtn.addEventListener('click', () => saveFile('glapdx.txt', resultsElement.value));
+    saveResultsBtn.addEventListener('click', () => saveFile('glapdx.txt', resultsElement.innerText));
 }
 
 if (document.readyState === "loading") {
