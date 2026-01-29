@@ -15,7 +15,9 @@ let numPrimersToGenerateElement;
 let toggleLogBtn;
 let logElement;
 let runBtn;
+let resultsAreaElement;
 let resultsElement;
+let saveResultsBtn;
 
 let parametersPageElement;
 let progressPageElement;
@@ -113,26 +115,77 @@ function updateBackgroundListFileLabelVisibility() {
     }
 }
 
+// Save file
+
+function saveFileUsingLink(filename, content) {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename; // do download instead of navigate
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+};
+
+async function saveFileUsingFilePicker(filename, content) {
+    try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+                description: 'Text Files',
+                accept: { 'text/plain': ['.txt'] },
+            }],
+        });
+
+        const writable = await handle.createWritable();
+        await writable.write(content);
+        await writable.close();
+    } catch (err) {
+        console.error("Save cancelled or failed:", err);
+    }
+};
+
+async function saveFile(filename, content) {
+    if (window.showSaveFilePicker)
+        saveFileUsingFilePicker(filename, content);
+    else
+        saveFileUsingLink(filename, content);
+}
+
 // Init
 
-function initHTMLElements() {
-    indexFileElement = document.getElementById('indexFile');
-    refFileElement = document.getElementById('refFile');
-    targetListFileElement = document.getElementById('targetListFile');
-    maxNumMismatchesInTargetElement = document.getElementById('maxNumMismatchesInTarget');
-    backgroundModeElement = document.getElementById('backgroundMode');
-    backgroundListFileLabelElement = document.getElementById('backgroundListFileLabel');
-    backgroundListFileElement = document.getElementById('backgroundListFile');
-    maxNumMismatchesInBackgroundElement = document.getElementById('maxNumMismatchesInBackground');
-    includeLoopPrimersElement = document.getElementById('includeLoopPrimers');
-    numPrimersToGenerateElement = document.getElementById('numPrimersToGenerate');
-    toggleLogBtn = document.getElementById('toggleLogBtn');
-    logElement = document.getElementById('log');
-    runBtn = document.getElementById('runBtn')
-    resultsElement = document.getElementById('results');
+function getElementById(name) {
+    const el = document.getElementById(name);
+    if (!el)
+        console.error(`Element ${name} not found`);
+    return el;
+}
 
-    parametersPageElement = document.getElementById('parametersPage');
-    progressPageElement = document.getElementById('progressPage');
+function initHTMLElements() {
+    indexFileElement = getElementById('indexFile');
+    refFileElement = getElementById('refFile');
+    targetListFileElement = getElementById('targetListFile');
+    maxNumMismatchesInTargetElement = getElementById('maxNumMismatchesInTarget');
+    backgroundModeElement = getElementById('backgroundMode');
+    backgroundListFileLabelElement = getElementById('backgroundListFileLabel');
+    backgroundListFileElement = getElementById('backgroundListFile');
+    maxNumMismatchesInBackgroundElement = getElementById('maxNumMismatchesInBackground');
+    includeLoopPrimersElement = getElementById('includeLoopPrimers');
+    numPrimersToGenerateElement = getElementById('numPrimersToGenerate');
+    toggleLogBtn = getElementById('toggleLogBtn');
+    logElement = getElementById('log');
+    runBtn = getElementById('runBtn')
+    resultsAreaElement = getElementById('resultsArea');
+    resultsElement = getElementById('results');
+    saveResultsBtn = getElementById('saveResultsBtn');
+
+    parametersPageElement = getElementById('parametersPage');
+    progressPageElement = getElementById('progressPage');
 }
 
 function init() {
@@ -153,7 +206,7 @@ function init() {
             logElement.value += msg.text + "\n";
             logElement.scrollTop = logElement.scrollHeight;
         } else if (cmd == 'results') {
-            resultsElement.style.display = 'block';
+            resultsAreaElement.style.display = 'block';
             resultsElement.value = msg.results;
             const h2Element = progressPageElement.getElementsByTagName('h2')[0];
             if (h2Element)
@@ -216,11 +269,13 @@ function init() {
         resultsElement.value = '';
     }
 
-    runBtn.addEventListener('click', e => runGlapd());
+    runBtn.addEventListener('click', () => runGlapd());
 
     toggleLogBtn.addEventListener('click', () => toggleLog());
 
     backgroundModeElement.addEventListener('change', () => updateBackgroundListFileLabelVisibility());
+
+    saveResultsBtn.addEventListener('click', () => saveFile('glapdx.txt', resultsElement.value));
 }
 
 if (document.readyState === "loading") {
