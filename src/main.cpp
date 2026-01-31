@@ -3,10 +3,15 @@
 #include <cstring>
 #include <exception>
 #include <filesystem>
+#include <format>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <zip.h>
 
 #include "bowtie.h"
 #include "glapd.h"
@@ -94,6 +99,22 @@ struct Args {
 
     unsigned numThreads = 1;
 };
+
+std::string renderArgs(const Args& args) {
+    return std::format(
+        "maxNumMismatchesInTarget: {}\n"
+        "backgroundMode: {}\n"
+        "maxNumMismatchesInBackground: {}\n"
+        "includeLoopPrimers: {}\n"
+        "numPrimersToGenerate: {}\n"
+        "numThreads: {}\n",
+        args.maxNumMismatchesInTarget,
+        toString(args.backgroundMode),
+        args.maxNumMismatchesInBackground,
+        args.includeLoopPrimers,
+        args.numPrimersToGenerate,
+        args.numThreads);
+}
 
 unsigned parseUintArg(const char* name, const char* value) {
     try {
@@ -269,12 +290,81 @@ void generateLampPrimerSets(const Args& args) {
     glapd_lamp_main(glapdArgs.size(), glapdArgs.data());
 }
 
+static void createFileInZipFromString(zipFile zip, const std::filesystem::path& dst, const std::string& contents)
+{
+    zipOpenNewFileInZip(zip, dst.string().c_str(), nullptr, nullptr, 0, nullptr, 0, nullptr, 0, Z_DEFAULT_COMPRESSION);
+    zipWriteInFileInZip(zip, contents.c_str(), contents.size());
+    zipCloseFileInZip(zip);
+}
+
+static void copyFileIntoZip(zipFile zip, const std::filesystem::path& src, const std::filesystem::path& dst)
+{
+    // Read file
+    std::ifstream in(src);
+    std::ostringstream sstr;
+    sstr << in.rdbuf();
+
+    createFileInZipFromString(zip, dst, sstr.str());
+}
+
+static void createWorkspaceZip(const Args& args)
+{
+    zipFile zip = zipOpen("workspace.zip", APPEND_STATUS_CREATE);
+
+    // Inputs
+    createFileInZipFromString(zip, "inputs/options.txt", renderArgs(args));
+    copyFileIntoZip(zip, args.indexPath, "inputs/index.fasta");
+    copyFileIntoZip(zip, args.refPath, "inputs/ref.fasta");
+    copyFileIntoZip(zip, args.targetListPath, "inputs/target.fasta");
+    if (args.backgroundMode == BackgroundMode::fromFile)
+        copyFileIntoZip(zip, args.backgroundListPath, "inputs/background.fasta");
+
+    // Outputs
+
+    // Bowtie Index
+    copyFileIntoZip(zip, "/tmp/index.1.ebwt", "outputs/index/index.1.ebwt");
+    copyFileIntoZip(zip, "/tmp/index.2.ebwt", "outputs/index/index.2.ebwt");
+    copyFileIntoZip(zip, "/tmp/index.3.ebwt", "outputs/index/index.3.ebwt");
+    copyFileIntoZip(zip, "/tmp/index.4.ebwt", "outputs/index/index.4.ebwt");
+    copyFileIntoZip(zip, "/tmp/index.rev.1.ebwt", "outputs/index/index.rev.1.ebwt");
+    copyFileIntoZip(zip, "/tmp/index.rev.2.ebwt", "outputs/index/index.rev.2.ebwt");
+
+    // Inner
+    copyFileIntoZip(zip, "/tmp/Inner/NAME", "outputs/Inner/NAME");
+    copyFileIntoZip(zip, "/tmp/Inner/NAME_Inner.bowtie", "outputs/Inner/NAME_Inner.bowtie");
+    copyFileIntoZip(zip, "/tmp/Inner/NAME-common_list.txt", "outputs/Inner/NAME-common_list.txt");
+    copyFileIntoZip(zip, "/tmp/Inner/NAME-common.txt", "outputs/Inner/NAME-common.txt");
+    copyFileIntoZip(zip, "/tmp/Inner/NAME-specific.txt", "outputs/Inner/NAME-specific.txt");
+
+    // Outer
+    copyFileIntoZip(zip, "/tmp/Outer/NAME", "outputs/Outer/NAME");
+    copyFileIntoZip(zip, "/tmp/Outer/NAME_Outer.bowtie", "outputs/Outer/NAME_Outer.bowtie");
+    copyFileIntoZip(zip, "/tmp/Outer/NAME-common.txt", "outputs/Outer/NAME-common.txt");
+    copyFileIntoZip(zip, "/tmp/Outer/NAME-specific.txt", "outputs/Outer/NAME-specific.txt");
+
+    // Loop
+    if (args.includeLoopPrimers)
+    {
+        copyFileIntoZip(zip, "/tmp/Loop/NAME", "outputs/Loop/NAME");
+        copyFileIntoZip(zip, "/tmp/Loop/NAME_Loop.bowtie", "outputs/Loop/NAME_Loop.bowtie");
+        copyFileIntoZip(zip, "/tmp/Loop/NAME-common.txt", "outputs/Loop/NAME-common.txt");
+        copyFileIntoZip(zip, "/tmp/Loop/NAME-specific.txt", "outputs/Loop/NAME-specific.txt");
+    }
+
+    copyFileIntoZip(zip, "success.txt", "outputs/success.txt");
+
+    // Logs?!
+
+    zipClose(zip, nullptr);
+}
+
 static void runGlapd(const Args& args)
 {
     buildBowtieIndex(args);
     generateSingleRegionPrimers(args);
     alignSingleRegionPrimers(args);
     generateLampPrimerSets(args);
+    createWorkspaceZip(args);
 }
 
 static bool isValidFile(const std::string& path) {

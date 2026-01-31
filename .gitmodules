@@ -4,3 +4,6 @@
 [submodule "external/bowtie/bowtie"]
 	path = external/bowtie/bowtie
 	url = https://github.com/thomasschaub/bowtie.git
+[submodule "external/zlib/zlib"]
+	path = external/zlib/zlib
+	url = https://github.com/madler/zlib.git

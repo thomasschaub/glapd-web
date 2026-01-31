@@ -19,6 +19,7 @@ let lampSetsElement;
 let resultsAreaElement;
 let resultsElement;
 let saveResultsBtn;
+let saveWorkspaceBtn;
 
 let parametersPageElement;
 let progressPageElement;
@@ -27,10 +28,12 @@ let progressPageElement;
 
 let log;
 let primers;
+let workspaceZip;
 
 function resetOutput() {
     log = "";
     primers = [];
+    workspaceZip = null;
 }
 
 function logLine(msg) {
@@ -222,6 +225,7 @@ function initHTMLElements() {
     resultsAreaElement = getElementById('resultsArea');
     resultsElement = getElementById('results');
     saveResultsBtn = getElementById('saveResultsBtn');
+    saveWorkspaceBtn = getElementById('saveWorkspaceBtn');
 
     parametersPageElement = getElementById('parametersPage');
     progressPageElement = getElementById('progressPage');
@@ -266,8 +270,9 @@ function init() {
         if (cmd == 'print' || cmd == 'printErr') {
             logLine(msg.text);
         } else if (cmd == 'results') {
+            workspaceZip = msg.args.workspaceZip;
             resultsAreaElement.style.display = 'block';
-            resultsElement.innerText = msg.results;
+            resultsElement.innerText = msg.args.results;
             const h2Element = progressPageElement.getElementsByTagName('h2')[0];
             if (h2Element)
                 h2Element.innerText = 'Done';
@@ -344,6 +349,8 @@ function init() {
     backgroundModeElement.addEventListener('change', () => updateBackgroundListFileLabelVisibility());
 
     saveResultsBtn.addEventListener('click', () => saveFile('glapdx.txt', resultsElement.innerText));
+
+    saveWorkspaceBtn.addEventListener('click', () => saveFile('glapdx_workspace.zip', workspaceZip));
 }
 
 if (document.readyState === "loading") {

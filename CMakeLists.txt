@@ -13,7 +13,7 @@ add_executable(glapd-web
     src/main.cpp
     src/signals.cpp
 )
-target_link_libraries(glapd-web PRIVATE bowtie glapd)
+target_link_libraries(glapd-web PRIVATE bowtie glapd minizip)
 
 if(EMSCRIPTEN)
     # Embed par dir

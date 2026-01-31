@@ -46,11 +46,23 @@ Module.onRuntimeInitialized = () => {
 
         const exitCode = callMain(args);
 
+        const tryRead = (path, encoding) => {
+            try {
+                return FS.readFile(path, { encoding });
+            } catch (e) {
+                return null;
+            }
+        }
+
         if (exitCode === 0) {
-            let results = FS.readFile('success.txt', { encoding: 'utf8' });
+            const results = tryRead('success.txt', 'utf8');
+            const workspaceZip = tryRead('workspace.zip', 'binary');
             postMessage({
                 'cmd': 'results',
-                'results': results
+                'args': {
+                    results,
+                    workspaceZip,
+                },
             });
         }
     };
