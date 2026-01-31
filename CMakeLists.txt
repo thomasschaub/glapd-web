@@ -10,6 +10,7 @@ add_subdirectory(external)
 add_executable(glapd-web
     src/par.cpp
     src/main.cpp
+    src/signals.cpp
 )
 target_link_libraries(glapd-web PRIVATE bowtie glapd)
 
