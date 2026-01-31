@@ -26,6 +26,8 @@ add_library(bowtie
     bowtie/shmem.cpp
     bowtie/tinythread.cpp)
 
+set_target_properties(bowtie PROPERTIES CXX_STANDARD 17)
+
 target_compile_definitions(bowtie PRIVATE
     BOWTIE_VERSION="v1.3.1"
     BUILD_HOST=""
