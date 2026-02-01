@@ -5,7 +5,7 @@
 CMake configure and initial build
 
 ```
-emcmake cmake -S . -B build/web -GNinja
+emcmake cmake -S . -B build/web -GNinja -DCMAKE_BUILD_TYPE=Release
 cmake --build build/web
 ```
 

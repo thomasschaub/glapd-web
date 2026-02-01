@@ -2,7 +2,7 @@ import http.server
 import os.path
 import subprocess
 
-build_dir = 'build/web'
+build_dir = 'build/web/apps/portable-glapd'
 html_dir = 'resources/html'
 
 class Handler(http.server.BaseHTTPRequestHandler):
