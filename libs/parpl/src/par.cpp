@@ -86,13 +86,29 @@ void parseArgs(int argc, const char* argv[], Config& cfg) {
     }
 }
 
+std::string trim(const std::string& s) {
+    size_t begin = s.find_first_not_of("\r\n ");
+    if (begin == std::string::npos)
+        begin = 0;
+
+    size_t end = s.find_last_not_of("\r\n ");
+    if (end == std::string::npos)
+        end = s.size();
+    else
+        end += 1; // we want to point one past the last valid char
+
+    return s.substr(begin, end - begin);
+}
+
 std::string readFastaSequence(const std::string& file_path) {
     std::ifstream file(file_path);
-    if (!file.is_open()) throw std::runtime_error("Cannot open file: " + file_path);
+    if (!file.is_open())
+        throw std::runtime_error("Cannot open file: " + file_path);
     std::string line, sequence;
     while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '>') continue;
-        sequence += line;
+        if (line.empty() || line[0] == '>')
+            continue;
+        sequence += trim(line);
     }
     return sequence;
 }
@@ -105,8 +121,9 @@ std::unordered_map<std::string, unsigned> loadGenomeIds(const std::string& file_
     unsigned index = 0;
     while (std::getline(file, line)) {
         if (line[0] == '>') line = line.substr(1);
-        std::string name = line.substr(0, line.find(' '));
-        if (name.length() > 300) name = name.substr(0, 300);
+        std::string name = trim(line.substr(0, line.find(' ')));
+        if (name.length() > 300)
+            name = name.substr(0, 300);
         if (result.count(name)) {
             std::cerr << "Warning: Duplicate genome name: " << name << "\n";
             continue;
@@ -189,7 +206,8 @@ void App::parseCliArgs(int argc, const char* argv[]) {
 
     std::stringstream ss(m_cfg.index);
     std::string token;
-    while (std::getline(ss, token, ',')) m_bowtieIndexPaths.push_back(token);
+    while (std::getline(ss, token, ','))
+        m_bowtieIndexPaths.push_back(token);
 }
 
 void App::readRefSequence() {
