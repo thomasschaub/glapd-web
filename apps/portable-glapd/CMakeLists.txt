@@ -1,9 +1,6 @@
-add_executable(glapd-web
-    src/par.cpp
-    src/main.cpp
-    src/signals.cpp
-)
-target_link_libraries(glapd-web PRIVATE bowtie glapd minizip)
+file(GLOB_RECURSE srcs CONFIGURE_DEPENDS src/*.cpp)
+add_executable(glapd-web ${srcs})
+target_link_libraries(glapd-web PRIVATE bowtie-wrapper glapd minizip parpl)
 
 if(EMSCRIPTEN)
     # Embed par dir

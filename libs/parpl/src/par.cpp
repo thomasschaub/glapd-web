@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "bowtie.h"
+#include <bowtie.h>
 
 namespace fs = std::filesystem;
 

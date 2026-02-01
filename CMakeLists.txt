@@ -8,4 +8,6 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 add_subdirectory(external)
 
+add_subdirectory(libs)
+
 add_subdirectory(apps)
