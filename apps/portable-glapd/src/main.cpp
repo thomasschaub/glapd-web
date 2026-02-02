@@ -269,12 +269,15 @@ void generateLampPrimerSets(const Args& args) {
 
     std::cout << "Generating LAMP primer sets" << std::endl;
 
+    const std::string numPrimersToGenerateStr = std::to_string(args.numPrimersToGenerate);
+
     std::vector<const char*> glapdArgs{
         "", // program name, unused
         "-in", "NAME",
         "-ref", args.refPath.c_str(),
         "-dir", workingDirectory,
         "-out", "success.txt",
+        "-num", numPrimersToGenerateStr.c_str(),
         "-par", s_parPath.c_str(),
     };
 
