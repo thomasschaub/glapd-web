@@ -68,4 +68,4 @@ Module.onRuntimeInitialized = () => {
     };
 };
 
-importScripts('glapd-web.js');
+importScripts('portable-glapd.js');

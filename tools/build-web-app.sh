@@ -22,7 +22,7 @@ cmake --build $build_dir
 
 app_dir=$(mktemp -d)
 
-cp $build_dir/apps/portable-glapd/{glapd-web.js,glapd-web.wasm} $app_dir
+cp $build_dir/apps/portable-glapd/{portable-glapd.js,portable-glapd.wasm} $app_dir
 cp $html_dir/* $app_dir
 
 echo "App is in $app_dir"

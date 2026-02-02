@@ -9,7 +9,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             self.send_file(os.path.join(html_dir, 'index.html'))
-        elif self.path in ['/glapd-web.js', '/glapd-web.wasm']:
+        elif self.path in ['/portable-glapd.js', '/portable-glapd.wasm']:
             self.cmake_build()
             path = os.path.join(build_dir, self.path[1:])
             self.send_file(path)
