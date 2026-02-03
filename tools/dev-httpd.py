@@ -32,6 +32,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             content_type = 'text/html'
         elif path.endswith('.js'):
             content_type = 'text/javascript'
+        elif path.endswith('.svg'):
+            content_type = 'image/svg+xml'
         elif path.endswith('.wasm'):
             content_type = 'application/wasm'
         else:
