@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -295,23 +296,32 @@ void generateLampPrimerSets(const Args& args) {
 
 static void createFileInZipFromString(zipFile zip, const std::filesystem::path& dst, const std::string& contents)
 {
-    zipOpenNewFileInZip(zip, dst.string().c_str(), nullptr, nullptr, 0, nullptr, 0, nullptr, 0, Z_DEFAULT_COMPRESSION);
+    zipOpenNewFileInZip(zip, dst.string().c_str(), nullptr, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
     zipWriteInFileInZip(zip, contents.c_str(), contents.size());
     zipCloseFileInZip(zip);
 }
 
 static void copyFileIntoZip(zipFile zip, const std::filesystem::path& src, const std::filesystem::path& dst)
 {
-    // Read file
-    std::ifstream in(src);
-    std::ostringstream sstr;
-    sstr << in.rdbuf();
+    zipOpenNewFileInZip(zip, dst.string().c_str(), nullptr, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
 
-    createFileInZipFromString(zip, dst, sstr.str());
+    // Read file in 1MB chunks
+    std::ifstream in(src);
+    const size_t bufSize = 1024 * 1024; // 1 MB
+    std::unique_ptr<char[]> buf = std::make_unique<char[]>(bufSize);
+    while (in) {
+        in.read(buf.get(), bufSize);
+        const size_t numRead = in.gcount();
+        zipWriteInFileInZip(zip, buf.get(), numRead);
+    }
+
+    zipCloseFileInZip(zip);
 }
 
 static void createWorkspaceZip(const Args& args)
 {
+    notify_about_to_start_phase("createWorkspaceZip");
+
     zipFile zip = zipOpen("workspace.zip", APPEND_STATUS_CREATE);
 
     // Inputs

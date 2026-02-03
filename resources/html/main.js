@@ -118,6 +118,7 @@ function setActivePhase(phase) {
         document.getElementById('generateSingleRegionPrimers'),
         document.getElementById('alignSingleRegionPrimers'),
         document.getElementById('generateLampPrimerSets'),
+        document.getElementById('createWorkspaceZip'),
     ];
 
     var found = false;
