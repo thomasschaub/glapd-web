@@ -68,13 +68,15 @@ function handleFoundPrimerSetCandidateEnd() {
 function validateFastaFileInput(inputElement) {
     const isValid = inputElement.files.length == 1;
 
-    const labelElement = getLabelForInputElement(inputElement);
-    if (labelElement) {
-        if (isValid)
-            labelElement.classList.remove('invalidInput');
-        else
-            labelElement.classList.add('invalidInput');
-    }
+    updateLabelElement(inputElement, isValid);
+
+    return isValid;
+}
+
+function validateNumberOfPrimersToGenerateInput(inputElement) {
+    const isValid = !isNaN(inputElement.value) && Number(inputElement.value) > 0;
+
+    updateLabelElement(inputElement, isValid);
 
     return isValid;
 }
@@ -90,7 +92,19 @@ function validateInputs() {
         invalidCount += validateFastaFileInput(backgroundListFileElement) ? 0 : 1;
     }
 
+    invalidCount += validateNumberOfPrimersToGenerateInput(numPrimersToGenerateElement);
+
     return invalidCount == 0;
+}
+
+function updateLabelElement(inputElement, isValid) {
+    const labelElement = getLabelForInputElement(inputElement);
+    if (labelElement) {
+        if (isValid)
+            labelElement.classList.remove('invalidInput');
+        else
+            labelElement.classList.add('invalidInput');
+    }
 }
 
 function getLabelForInputElement(inputElement) {
@@ -312,6 +326,8 @@ function init() {
     for (const fastaFileInput of [indexFileElement, refFileElement, targetListFileElement, backgroundListFileElement]) {
         fastaFileInput.addEventListener('change', () => validateFastaFileInput(fastaFileInput));
     }
+
+    numPrimersToGenerateElement.addEventListener('input', () => validateNumberOfPrimersToGenerateInput(numPrimersToGenerateElement));
 
     async function runGlapd() {
         if (!validateInputs())
