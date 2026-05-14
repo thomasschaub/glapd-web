@@ -19,7 +19,7 @@
 #include "par.h"
 #include "signals.h"
 
-#if EMSCRIPTEN
+#if __EMSCRIPTEN__
 #include <emscripten.h>
 #else
 #define EMSCRIPTEN_KEEPALIVE

@@ -1,6 +1,6 @@
 #include "signals.h"
 
-#ifndef EMSCRIPTEN
+#ifndef __EMSCRIPTEN__
 
 extern "C" {
 
